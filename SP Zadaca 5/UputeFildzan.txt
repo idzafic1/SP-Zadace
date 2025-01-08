@@ -1,0 +1,34 @@
+ZADATAK 1:
+Kompajlirati FILDZAN32 kompajler i jednu demo aplikaciju. 
+
+UPUTSTVO:
+Ako se prosiruje programski jezik FILDZAN32 potrebno je kompajlirati i sam kompajler,
+inace to nije neophodno
+
+ZA KOMPAJLIRANJE KOMPAJLERA KORISTI SE NAREDBA
+gcc -m32 -o komp.exe komp.c
+
+Dobijen je program KOMP.EXE koji je nas kompajler
+
+Za prevodjenje primjera otkucati
+
+komp hexdec.fil hexdec.asm
+
+Dobijen je asemblerski program. Njega treba prevesti u obj (a mozete ga prije toga i 
+pregledati u nekom editoru)
+
+nasm -f win32 hexdec.asm 
+
+
+Sada ga treba linkovati s Windows bibliotekama.
+
+golink hexdec.obj kernel32.dll gdi32.dll user32.dll
+
+Dobijen je hexdec.exe
+
+Zadatak 2:
+Proširiti FILDZAN32 kompajler operatorom >= bez gubitka operatora > . Prilagoditi testni primjer
+
+Zadatak 3:
+Kompajlirati interpreter za Brainf*ck i testirati pridruženim programom za tictactoe. Nađite na internetu 
+još jedan program u ovom minimalističkom jeziku i izvršite ga.

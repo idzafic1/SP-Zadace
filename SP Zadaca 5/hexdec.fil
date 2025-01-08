@@ -1,0 +1,144 @@
+varijable hmodul, hglavni, huneseni, hdugme, hispis, coznaka,
+          crezultat;
+funkcija RegisterClassExA(pklasa);
+funkcija ShowWindow (pprozor,poblik) ;
+funkcija UpdateWindow(pprozor) ;
+funkcija GetMessageA (pporuka,pb,pc,pd);
+funkcija TranslateMessage (pporuka) ;
+funkcija DispatchMessageA (pporuka) ;
+funkcija CreateWindowExA(
+  pdwExStyle,plpClassName, plpWindowName,
+  pdwStyle,px,py,pnWidth,pnHeight,
+  phWndParent,phMenu,phInstance, plpParam);
+funkcija LoadCursorA(phInstance,plpCursorName) ;
+funkcija LoadIconA (phInstance,plpIconName) ;
+funkcija CreateSolidBrush (pbrush) ;
+funkcija DeleteObject (pobject) ;
+funkcija DestroyWindow (pwindow) ;
+funkcija PostQuitMessage (pmessage) ;
+funkcija DefWindowProcA(phWnd,pMsg,pwParam,plParam);
+funkcija MessageBoxA (phWnd,plpText, plpCaption,puType);
+funkcija GetModuleHandleA (pprogram) ;
+funkcija HeapAlloc(phHeap, pdwFlags, pdwBytes );
+funkcija GetProcessHeap();
+funkcija GetWindowTextA(phWnd,plpString, pnMaxCount);
+funkcija SetWindowTextA(phWnd,plpString);
+funkcija KreirajKontrole() {
+huneseni:=CreateWindowExA(512,"EDIT","0",
+        1350565888,146,60,121,21,hglavni,0,hmodul,0);
+hispis:=CreateWindowExA(0,"STATIC",
+        "Vrijednost:",   1342177280,351,62,180,17,
+        hglavni,0,hmodul,0);
+hdugme:=CreateWindowExA(0,"BUTTON","Racunaj",
+        1342177280,329,95,75,25,hglavni,0,hmodul,0);
+}
+
+funkcija OnWmCommand( phwnd,plParam) {
+  varijable lbrojac,liznos,lcifra,lradi,lgreska;
+  coznaka:="            ";
+  crezultat:="Rezultat:000000000000";
+  ako (hdugme=plParam) {
+    GetWindowTextA(huneseni,coznaka,9);
+    lbrojac:=0;
+    liznos:=0;
+    lradi:=1;
+    lgreska:=0;
+    dok (lbrojac<12) & lradi {
+      ako (coznaka[lbrojac]>47) & (coznaka[lbrojac]<58) {
+        liznos:=liznos*16+ (coznaka[lbrojac]-48);
+      }
+      inace {
+        ako (coznaka[lbrojac]>64) & (coznaka[lbrojac]<71) {
+          liznos:=liznos*16+ (coznaka[lbrojac]-55);
+        }
+        inace {
+          crezultat := "Greska";
+          lradi:=0;
+          lgreska:=1;
+        }
+      }
+      lbrojac:=lbrojac+1;
+      ako (coznaka[lbrojac]=0) {
+        lradi:=0;
+      }
+    }
+    lbrojac:=20;
+    dok (! lgreska) & (lbrojac>12) {
+      lcifra:=liznos % 10;
+      liznos:=liznos / 10;
+      crezultat[lbrojac]:=lcifra+48;
+      lbrojac:=lbrojac-1;
+    }
+    SetWindowTextA(hispis,crezultat);
+  }
+}
+` Korak 4: Prozorska procedura
+funkcija WndProc( phwnd,puMsg,pwParam,plParam) {
+  varijable lrezult;
+  lrezult:=0;
+  ako (puMsg=2) {
+    ` Poruka WM_DESTROY
+    PostQuitMessage(0);
+    lrezult:=1;
+  }
+  ako (puMsg=273) {
+    ` Poruka WM_COMMAND
+    OnWmCommand(phwnd,plParam);
+    lrezult:=1;
+  }
+  ako (lrezult=0) {
+    DefWindowProcA(phwnd,puMsg,pwParam, plParam);
+  }
+  inace  {
+    lrezult;
+  }
+}
+` Glavni program
+funkcija Glavni () {
+  varijable lklasa,lporuka,lpfun;
+  ` Korak 1:  Registracija prozorske klase
+  hmodul:=GetModuleHandleA(0);
+  lklasa:=HeapAlloc(GetProcessHeap(),0,48);
+  lporuka:=HeapAlloc(GetProcessHeap(),0,150);
+  lklasa[0]:= 48;
+  lklasa[1]:= 0;
+  asembler
+    MOV EAX, WndProc
+    MOV [EBP+lpfunGlavni],EAX
+\
+  lklasa[2]:= lpfun;
+  lklasa[3]:= 0;
+  lklasa[4]:= 0;
+  lklasa[5]:= hmodul;
+  lklasa[6]:= LoadIconA(0,32512); `IDI_APPLICATION
+  lklasa[7]:= LoadCursorA(0,32512); ` IDC_ARROW
+  lklasa[8] := 5;  `COLOR_WINDOW_FRAME
+  lklasa[9] := 0;
+  lklasa[10] := "KLASA";
+  lklasa[11] :=LoadIconA(0,32512);  `IDI_APPLICATION
+  ako (!RegisterClassExA(lklasa))  {
+    MessageBoxA(0,"Neuspjela registracija!","Greska",0);
+  }
+  inace  {
+`  Korak 2: Kreiranje prozora
+    hglavni:=CreateWindowExA (512,"KLASA", "Hex - Dec Konvertor",
+           13565952,230,104,640,184,0,0,hmodul,0);
+    ako (hglavni = 0) {
+      MessageBoxA(0,"Neuspjelo kreiranje!", "Greska",0);
+    }
+    inace  {
+      KreirajKontrole();
+      ShowWindow(hglavni,10);  `SW_SHOW
+      UpdateWindow(hglavni);
+` Korak 3:   Petlja poruka
+      dok (GetMessageA(lporuka,0,0,0) > 0)  {
+        TranslateMessage(lporuka);
+        DispatchMessageA(lporuka);
+      }
+      lporuka[2];
+    }
+  }
+}
+{
+  Glavni();
+}
